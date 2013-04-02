@@ -2,7 +2,7 @@ node-ga:
 ========
 Logging middleware for express: translate your API calls to visit to your website by using Google Analytics.
 
-This module uses the "Google Analytics for mobile websites" [https://developers.google.com/analytics/devguides/collection/other/mobileWebsites] API. Thus, your account ID should start with 'MO' instead of 'UA'. You can just give your usual account ID, this module will do the translation.
+This module uses the [Google Analytics for mobile websites](https://developers.google.com/analytics/devguides/collection/other/mobileWebsites) API. Thus, your account ID must start with 'MO' instead of 'UA'. You can just give your usual account ID, this module will do the translation.
 
 Usage:
 ======
@@ -16,7 +16,7 @@ Usage:
     }));
 
     app.get('/', function (req, res, next) {
-      return res.send('Hello world!');
+      return res.end('Hello world!');
     });
 
 Options:
@@ -26,18 +26,17 @@ Options:
 If set to false, the log will be wrapped in a function to be called later by process.nextTick(). Defaults to true, in which case the request will be logged before being passed to next().
 
     cookie_name: 'string'
-Custon cookie name to log the visitor ID. Defaults to "__utmnodejs".
+Custom cookie name to log the visitor ID. Defaults to "__utmnodejs".
 
 Usage outside express:
 =====================
-This middleware can be used without express seamlessly. Instead of being set automatically with res.setHeader(), you can find it in res.cookieGA to add it to your response.
+This middleware can be used without express. The cookie is automatically added with res.setHeader(). You should however parse req.headers['cookie'] to an object in req.cookies to avoid an unique being seen as multiple visits. The module will still work fine otherwise.
 
     var http = require('http');
     var ga = require('node-ga')('UA-XXXXXXXX-Y', { safe: true});
 
     http.createServer(function (req, res) {
         return ga(req, res, function () {
-          res.setHeader(200, { 'Cookie': res.cookieGA });
-          res.send('Hello world!');
+          res.end('Hello world!');
         });
     }).listen(80);
