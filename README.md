@@ -22,11 +22,48 @@ Usage:
 Options:
 ========
 
-    safe: (true || false)
+    safe: {Boolean}
 If set to false, the log will be wrapped in a function to be called later by process.nextTick(). Defaults to true, in which case the request will be logged before being passed to next().
 
-    cookie_name: 'string'
+    cookie_name: {String}
 Custom cookie name to log the visitor ID. Defaults to "__utmnodejs".
+
+    custom: {Object}
+Dictionary of functions to use on req and res to retrieve some custom values asynchronously. See next section for examples.
+
+Custom values:
+==============
+You can use asynchronous functions to assign custom key/values to the Google Analytics request. Give each of key a function that will take three parameters: ServerRequest, ServerObject and a callback function (with error and result) to be called once you're done.
+
+NOTE: Returning a null value instead of a string will NOT log the data. In the following example, the value for "key_three" is NEVER sent to the Google Analytics server.
+
+    var express = require('express');
+    var ga = require('node-ga');
+    var app = express();
+
+    function func_key_one (req, res, next) {
+        return asynchronous_mongodb_call(function (err, result) {
+            if (err) return next(err);
+            var data = result.process();
+            return next(null, data);
+        });
+    };
+
+    app.use(express.cookieParser());
+    app.use(ga('UA-XXXXXXXX-Y', {
+        custom: {
+            key_one: func_key_one,
+            key_two: function (req, res, next) {
+                return next(null, 'hello');
+            },
+            key_three: function (req, res, next) { return next(null, null); }
+        }
+    }));
+
+    app.get('/', function (req, res, next) {
+      return res.end('Hello world!');
+    });
+
 
 Usage outside express:
 =====================
